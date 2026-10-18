@@ -40,6 +40,12 @@
                             <TextBlock Text="Programs" Margin="12,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </RadioButton>
+                    <RadioButton x:Name="RegistryNav" Style="{StaticResource NavItem}" GroupName="Nav" Checked="Nav_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="DatabaseSearch24" FontSize="18" />
+                            <TextBlock Text="Registry Cleaner" Margin="12,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
                     <RadioButton x:Name="BackupsNav" Style="{StaticResource NavItem}" GroupName="Nav" Checked="Nav_Checked">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="History24" FontSize="18" />
@@ -58,6 +64,7 @@
             <!-- Pages -->
             <Grid Grid.Column="1" Margin="8,0,24,20">
                 <views:ProgramsPage x:Name="ProgramsPage" />
+                <views:RegistryCleanerPage x:Name="RegistryPage" Visibility="Collapsed" />
                 <views:BackupsPage x:Name="BackupsPage" Visibility="Collapsed" />
                 <views:AboutPage x:Name="AboutPage" Visibility="Collapsed" />
             </Grid>

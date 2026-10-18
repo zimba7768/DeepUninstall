@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using DeepUninstall.Core.Models;
+using DeepUninstall.Core.RegistryCleaning;
 using Wpf.Ui.Controls;
 
 namespace DeepUninstall.App.ViewModels;
@@ -174,6 +175,45 @@ public sealed class StepItem(string title) : ObservableObject
     };
 }
 
+/// <summary>A row in the registry cleaner results.</summary>
+public sealed class RegistryIssueItem(RegistryIssue issue) : ObservableObject
+{
+    private bool _isSelected = issue.Item.IsRecommended;
+
+    public RegistryIssue Issue { get; } = issue;
+    public Leftover Leftover => Issue.Item;
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => Set(ref _isSelected, value);
+    }
+
+    public string CategoryName => RegistryCleaner.Info(Issue.Category).Name;
+    public int CategoryOrder => (int)Issue.Category;
+    public string Location => Issue.Item.DisplayPath;
+    public string Reason => Issue.Item.Reason;
+    public Confidence Confidence => Issue.Item.Confidence;
+    public string ConfidenceText => Issue.Item.Confidence.ToString();
+}
+
+/// <summary>A check the user can turn on or off for a managed scan.</summary>
+public sealed class CategoryChoice(RegistryCategoryInfo info) : ObservableObject
+{
+    private bool _isChecked = info.Level != ScanLevel.Advanced;
+
+    public RegistryCategoryInfo Info { get; } = info;
+    public string Name => Info.Name;
+    public string Description => Info.Description;
+    public string LevelText => Info.Level.ToString();
+
+    public bool IsChecked
+    {
+        get => _isChecked;
+        set => Set(ref _isChecked, value);
+    }
+}
+
 /// <summary>One cleanup's backup folder.</summary>
 public sealed class BackupItem
 {
@@ -193,6 +233,8 @@ public sealed class BackupItem
         }
 
         RegistryFiles = dir.GetFiles("*.reg").Length;
+        ReportPath = Path.Combine(dir.FullName, "report.html");
+        HasReport = File.Exists(ReportPath);
         var log = Path.Combine(dir.FullName, "removal-log.txt");
         RemovedItems = File.Exists(log) ? File.ReadLines(log).Count(l => l.StartsWith("[Removed]", StringComparison.Ordinal)) : 0;
     }
@@ -204,6 +246,8 @@ public sealed class BackupItem
     public int RegistryFiles { get; }
     public int RemovedItems { get; }
     public bool CanRestoreRegistry => RegistryFiles > 0;
+    public string ReportPath { get; }
+    public bool HasReport { get; }
 
     public string Summary =>
         $"{RemovedItems} item(s) removed  ·  {RegistryFiles} registry backup(s)";

@@ -39,6 +39,16 @@ programs.
 - Shell integration: COM components, right-click menu handlers, icon overlays, preview and thumbnail handlers, file types, protocols, "Open with" entries, and default-programs registrations.
 - App Paths entries and Windows Firewall rules.
 
+**Reports**
+- After every cleanup, save a report of everything that was found and removed, as a web page or a text file.
+- A copy is kept with the backups, so you can open it later from the Backups page.
+
+**Registry Cleaner**
+- **Quick Clean** (one click), **Safe**, **Moderate** and **Advanced** scans, plus a **Managed** scan where you pick the checks.
+- 11 checks: dead startup entries, App Paths, "Open with" programs, the program name cache, shared DLL counters, broken uninstall entries, file type handlers, firewall rules, shell extension approvals, COM components and empty settings keys.
+- Only flags entries with proof they're dead: the file they point to is definitely missing from a fixed local drive. Unplugged USB drives, network paths and Windows' own entries are never touched.
+- Everything removed is backed up and can be restored from the Backups page. To be honest about it: registry cleaning rarely makes Windows faster; it tidies up after removed software.
+
 **Safety first**
 - **Confidence levels.** Every leftover is rated High, Medium or Low, with a plain-English reason. Only High-confidence items are pre-selected.
 - **Strict name matching.** Names must match exactly after normalisation. "Fire" never matches "Firefox". Generic names ("Common", "Update", "Tools"…) are ignored, and so are names shared with another installed program.
@@ -75,6 +85,8 @@ deepuninstall list [filter]                 List installed programs
 deepuninstall info <program>                Show details and the uninstall commands
 deepuninstall scan <program>                Dry run: show what the leftover scan finds right now
 deepuninstall uninstall <program> [options] Uninstall, then clean up leftovers
+deepuninstall registry [safe|moderate|advanced] [--clean] [--yes]
+                                            Scan the registry for dead entries (scan only unless --clean)
 
   --silent            Use the program's silent uninstall mode when available
   --force             Skip the program's uninstaller (for broken entries) and clean up directly

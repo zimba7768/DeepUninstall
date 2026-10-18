@@ -2,6 +2,7 @@
 using DeepUninstall.Core.Discovery;
 using DeepUninstall.Core.Leftovers;
 using DeepUninstall.Core.Models;
+using DeepUninstall.Core.RegistryCleaning;
 using DeepUninstall.Core.Removal;
 using DeepUninstall.Core.Safety;
 using DeepUninstall.Core.Uninstall;
@@ -18,6 +19,8 @@ internal static class Program
           deepuninstall info <program>                Show details and the uninstall commands
           deepuninstall scan <program>                Dry run: show what the leftover scan finds right now
           deepuninstall uninstall <program> [options] Uninstall, then clean up leftovers
+          deepuninstall registry [safe|moderate|advanced] [--clean] [--yes]
+                                                      Scan the registry for dead entries (scan only unless --clean)
 
         Options for uninstall:
           --silent            Use the program's silent uninstall mode when available
@@ -50,6 +53,7 @@ internal static class Program
                 "info" => Info(query),
                 "scan" => Scan(query),
                 "uninstall" => await UninstallAsync(query, flags),
+                "registry" => Registry(query, flags),
                 _ => Fail($"Unknown command \"{args[0]}\".\n\n{Usage}"),
             };
         }
@@ -184,6 +188,43 @@ internal static class Program
         var report = await session.RemoveAsync(selected, new RemovalOptions { UseRecycleBin = !flags.Contains("--permanent") }, log);
         Console.WriteLine($"\nRemoved {report.Removed}, failed {report.Failed}. Backups: {report.BackupDirectory}");
         if (report.RebootRequired) Console.WriteLine("Some items are in use and will be removed when Windows restarts.");
+        return report.Failed == 0 ? 0 : 1;
+    }
+
+    private static int Registry(string levelText, HashSet<string> flags)
+    {
+        if (!Enum.TryParse<ScanLevel>(string.IsNullOrWhiteSpace(levelText) ? "Safe" : levelText.Trim(), ignoreCase: true, out var level))
+            return Fail("Level must be safe, moderate or advanced.");
+
+        var clean = flags.Contains("--clean");
+        Console.WriteLine($"{level} registry scan{(clean ? "" : " (nothing will be changed)")}...");
+        var issues = new RegistryCleaner().Scan(RegistryCleaner.CategoriesFor(level), new SyncProgress(m => Console.WriteLine($"  {m}")));
+        Console.WriteLine();
+
+        foreach (var group in issues.GroupBy(i => i.Category))
+        {
+            var info = RegistryCleaner.Info(group.Key);
+            Console.WriteLine($"{info.Name} ({group.Count()}):");
+            foreach (var issue in group)
+                Console.WriteLine($"  [{issue.Item.Confidence}] {issue.Item.DisplayPath}\n      {issue.Item.Reason}");
+            Console.WriteLine();
+        }
+        Console.WriteLine($"{issues.Count} issue(s) found.");
+
+        var selected = issues.Where(i => i.Item.Confidence == Confidence.High).Select(i => i.Item).ToList();
+        if (!clean || selected.Count == 0) return 0;
+
+        if (!UninstallSession.IsElevated)
+            return Fail("Cleaning the registry needs administrator rights. Run this from an elevated terminal.");
+        if (!flags.Contains("--yes"))
+        {
+            Console.Write($"Remove {selected.Count} high-confidence item(s)? They are backed up first. [y/N] ");
+            if (!string.Equals(Console.ReadLine()?.Trim(), "y", StringComparison.OrdinalIgnoreCase)) return Fail("Nothing was removed.");
+        }
+
+        var report = new LeftoverRemover().Remove(selected, new RemovalOptions { Label = $"Registry cleanup ({level})", CloseRunningProcesses = false },
+            new SyncProgress(m => Console.WriteLine($"  {m}")));
+        Console.WriteLine($"\nRemoved {report.Removed}, failed {report.Failed}. Backups: {report.BackupDirectory}");
         return report.Failed == 0 ? 0 : 1;
     }
 

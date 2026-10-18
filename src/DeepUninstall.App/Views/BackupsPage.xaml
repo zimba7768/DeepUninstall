@@ -45,6 +45,8 @@
                                     </TextBlock>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <ui:Button Content="View report" Icon="{ui:SymbolIcon DocumentBulletList24}" Margin="0,0,8,0" Click="ViewReport_Click"
+                                               Visibility="{Binding HasReport, Converter={StaticResource BoolToVisibility}}" />
                                     <ui:Button Content="Open folder" Icon="{ui:SymbolIcon FolderOpen24}" Click="OpenFolder_Click" />
                                     <ui:Button Content="Restore registry" Icon="{ui:SymbolIcon ArrowUndo24}" Margin="8,0,0,0"
                                                IsEnabled="{Binding CanRestoreRegistry}" Click="Restore_Click"

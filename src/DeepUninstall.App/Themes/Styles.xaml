@@ -110,6 +110,62 @@
         </Setter>
     </Style>
 
+    <!-- A clickable card. -->
+    <Style x:Key="Tile" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Card" CornerRadius="8" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Card" Property="Background" Value="{DynamicResource CardBackgroundFillColorSecondaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Card" Property="Opacity" Value="0.85" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Registry cleaner scan colours, after the classic green / blue / red / yellow scan levels. -->
+    <LinearGradientBrush x:Key="QuickCleanGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#7CB3F2" Offset="0" />
+        <GradientStop Color="#2F6FD6" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="SafeGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#2BD46A" Offset="0" />
+        <GradientStop Color="#0E8A3E" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ModerateGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#3A8DE0" Offset="0" />
+        <GradientStop Color="#0F4C8A" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="AdvancedGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#F25454" Offset="0" />
+        <GradientStop Color="#A31919" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ManagedGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFE07A" Offset="0" />
+        <GradientStop Color="#F5B800" Offset="1" />
+    </LinearGradientBrush>
+
     <!-- Rounded square showing a program's first letter when it has no icon. -->
     <Style x:Key="InitialBadge" TargetType="Border">
         <Setter Property="CornerRadius" Value="6" />

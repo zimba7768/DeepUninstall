@@ -236,6 +236,7 @@ public sealed class SafetyGuard
     private static readonly string[] ValueOnlyKeys =
     [
         @"SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules",
+        @"SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache",
     ];
 
     private static readonly HashSet<string> ProtectedSoftwareChildren = new(StringComparer.OrdinalIgnoreCase)

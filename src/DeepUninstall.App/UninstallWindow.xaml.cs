@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using DeepUninstall.App.Services;
 using DeepUninstall.App.ViewModels;
 using DeepUninstall.Core;
 using DeepUninstall.Core.Models;
@@ -30,6 +31,12 @@ public partial class UninstallWindow : FluentWindow
     private TaskCompletionSource<bool>? _removeDecision;
     private string? _backupDirectory;
     private bool _running;
+
+    // Collected for the report.
+    private string _restoreSummary = "Not created";
+    private string _uninstallerSummary = "Not run";
+    private IReadOnlyList<Leftover> _found = [];
+    private RemovalReport? _removal;
 
     public UninstallWindow(InstalledApp app, bool force, ImageSource? icon, (int Index, int Count)? batch)
     {
@@ -140,12 +147,16 @@ public partial class UninstallWindow : FluentWindow
             Log(rp.Message);
             _restoreStep.State = rp.Created ? StepState.Done : StepState.Warning;
             _restoreStep.Detail = rp.Created ? "Created" : rp.Message;
+            _restoreSummary = rp.Message;
         }
         else
         {
             _restoreStep.State = StepState.Skipped;
             _restoreStep.Detail = "Skipped";
+            _restoreSummary = "Skipped";
         }
+
+        if (_force) _uninstallerSummary = "Skipped (force removal)";
 
         // 2. The program's own uninstaller
         if (!_force)
@@ -161,6 +172,7 @@ public partial class UninstallWindow : FluentWindow
             MadeChanges = true;
 
             var stillRegistered = _session.IsStillRegistered();
+            _uninstallerSummary = result.Message + (stillRegistered ? " The program was still registered as installed afterwards." : "");
             _uninstallStep.State = result.LooksSuccessful && !stillRegistered ? StepState.Done : StepState.Warning;
             _uninstallStep.Detail = result.Outcome switch
             {
@@ -191,6 +203,7 @@ public partial class UninstallWindow : FluentWindow
         _scanStep.Detail = "Scanning...";
         FooterText.Text = "Scanning for leftovers...";
         var leftovers = await _session.ScanLeftoversAsync(log);
+        _found = leftovers;
         _scanStep.State = StepState.Done;
         _scanStep.Detail = $"{leftovers.Count} item(s) found";
 
@@ -250,6 +263,8 @@ public partial class UninstallWindow : FluentWindow
         }, log);
         MadeChanges = true;
         _backupDirectory = report.BackupDirectory;
+        _removal = report;
+        ReportExporter.SaveToBackupFolder(BuildReport());
 
         _removeStep.State = report.Failed == 0 ? StepState.Done : StepState.Warning;
         _removeStep.Detail = $"{report.Removed} removed" + (report.Failed > 0 ? $", {report.Failed} failed" : "");
@@ -260,6 +275,48 @@ public partial class UninstallWindow : FluentWindow
         text += " Registry backups were saved in case you need to restore anything.";
         ShowDone(report.Failed == 0, report.Failed == 0 ? $"{_session.App.DisplayName} is gone" : "Cleanup finished with problems", text);
         OpenBackupsButton.Visibility = Visibility.Visible;
+    }
+
+    private ReportContext BuildReport()
+    {
+        var app = _session.App;
+        var facts = new List<KeyValuePair<string, string>>();
+        void Add(string label, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value)) facts.Add(new(label, value));
+        }
+
+        Add("Program", app.DisplayName);
+        Add("Publisher", app.Publisher);
+        Add("Version", app.DisplayVersion);
+        Add("Install folder", app.InstallLocation);
+        Add("Installed for", app.IsPerUser ? "Current user" : "All users");
+        Add("Method", _force ? "Force removal (the program's uninstaller was skipped)"
+            : SilentCheck.IsChecked == true ? "Program's own uninstaller, silent" : "Program's own uninstaller");
+        Add("Uninstaller result", _uninstallerSummary);
+        Add("Restore point", _restoreSummary);
+        Add("Leftovers found", _found.Count.ToString(System.Globalization.CultureInfo.CurrentCulture));
+        if (_removal is null && _found.Count > 0) Add("Cleanup", "Skipped: nothing was removed");
+
+        var removed = _removal?.Entries.Select(e => e.Item.Identity).ToHashSet() ?? [];
+        return new ReportContext
+        {
+            Title = "Uninstall report",
+            Subject = app.DisplayName,
+            Facts = facts,
+            Removal = _removal,
+            Kept = _found.Where(f => !removed.Contains(f.Identity)).ToList(),
+            Log = LogBox.Text,
+        };
+    }
+
+    private void SaveReport_Click(object sender, RoutedEventArgs e)
+    {
+        var path = ReportExporter.SaveAs(this, BuildReport());
+        if (path is null) return;
+        var answer = MessageBox.Show(this, $"The report was saved to:\n{path}\n\nOpen it now?", "Report saved",
+            MessageBoxButton.YesNo, MessageBoxImage.Information, MessageBoxResult.Yes);
+        if (answer == MessageBoxResult.Yes) ReportExporter.Open(path);
     }
 
     /// <returns>true to close running processes, false to leave them, null to go back.</returns>

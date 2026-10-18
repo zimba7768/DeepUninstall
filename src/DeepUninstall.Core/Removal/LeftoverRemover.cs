@@ -31,6 +31,11 @@ public sealed record RemovalEntry(Leftover Item, RemovalStatus Status, string? M
 
 public sealed record RemovalReport(IReadOnlyList<RemovalEntry> Entries, string BackupDirectory)
 {
+    /// <summary>Empty parent folders and keys that were tidied up afterwards.</summary>
+    public IReadOnlyList<string> CleanedUpParents { get; init; } = [];
+
+    public DateTime CompletedAt { get; init; } = DateTime.Now;
+
     public int Removed => Entries.Count(e => e.Status is RemovalStatus.Removed or RemovalStatus.AlreadyGone);
     public int Failed => Entries.Count(e => e.Status is RemovalStatus.Failed or RemovalStatus.Blocked);
     public bool RebootRequired => Entries.Any(e => e.Status == RemovalStatus.ScheduledForReboot);
@@ -76,8 +81,10 @@ public sealed class LeftoverRemover
             log?.Report(line);
         }
 
+        var parents = new List<string>();
         foreach (var line in CleanUpEmptyParents(list))
         {
+            parents.Add(line);
             logLines.Add(line);
             log?.Report(line);
         }
@@ -91,7 +98,7 @@ public sealed class LeftoverRemover
             // The removal itself succeeded; a missing log is not worth failing over.
         }
 
-        return new RemovalReport(entries, backup.Directory);
+        return new RemovalReport(entries, backup.Directory) { CleanedUpParents = parents };
     }
 
     private static int Order(Leftover item) => item.Kind switch

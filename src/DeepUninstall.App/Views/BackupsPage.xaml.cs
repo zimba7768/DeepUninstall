@@ -33,6 +33,12 @@ public partial class BackupsPage : UserControl
             Process.Start(new ProcessStartInfo("explorer.exe", $"\"{item.Directory}\"") { UseShellExecute = true });
     }
 
+    private void ViewReport_Click(object sender, RoutedEventArgs e)
+    {
+        if (ItemOf(sender) is { HasReport: true } item)
+            Process.Start(new ProcessStartInfo(item.ReportPath) { UseShellExecute = true });
+    }
+
     private async void Restore_Click(object sender, RoutedEventArgs e)
     {
         if (ItemOf(sender) is not { } item) return;

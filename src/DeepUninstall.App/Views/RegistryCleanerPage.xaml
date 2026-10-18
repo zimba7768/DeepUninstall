@@ -1,0 +1,235 @@
+<UserControl x:Class="DeepUninstall.App.Views.RegistryCleanerPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Grid>
+        <!-- ============ Home: choose a scan ============ -->
+        <ScrollViewer x:Name="HomePanel" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <StackPanel Margin="0,4,0,18">
+                    <TextBlock Text="Registry Cleaner" Style="{StaticResource PageTitle}" />
+                    <TextBlock Style="{StaticResource Secondary}" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Text="Finds registry entries that point to programs and files that no longer exist. Everything removed is backed up first." />
+                </StackPanel>
+
+                <!-- Quick Clean -->
+                <Button Style="{StaticResource Tile}" Padding="28,24" Click="QuickClean_Click">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid Width="96" Height="96">
+                            <Ellipse Fill="{StaticResource QuickCleanGradient}" />
+                            <ui:SymbolIcon Symbol="Broom24" FontSize="42" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <StackPanel Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Quick Clean" FontSize="22" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource Secondary}" Margin="0,4,0,8" TextWrapping="Wrap"
+                                       Text="Scan and clean with one click. Removes only Safe-level entries, and backs them up first." />
+                            <Border Style="{StaticResource Chip}" HorizontalAlignment="Left">
+                                <TextBlock x:Name="QuickChecksText" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </Border>
+                        </StackPanel>
+                        <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight24" FontSize="20" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                    </Grid>
+                </Button>
+
+                <TextBlock Text="Or choose a scan and review the results" Style="{StaticResource SectionTitle}" Margin="0,24,0,10" />
+                <UniformGrid Columns="4">
+                    <Button Style="{StaticResource Tile}" Margin="0,0,6,0" Tag="Safe" Click="Level_Click">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Grid Width="72" Height="72">
+                                <Ellipse Fill="{StaticResource SafeGradient}" />
+                                <ui:SymbolIcon Symbol="ShieldCheckmark24" FontSize="32" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
+                            <TextBlock Text="Safe Scan" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,4" />
+                            <TextBlock Style="{StaticResource Secondary}" TextAlignment="Center" TextWrapping="Wrap" Text="Entries that are clearly dead and safe to remove" />
+                            <TextBlock x:Name="SafeChecksText" Style="{StaticResource Tertiary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Tile}" Margin="6,0,6,0" Tag="Moderate" Click="Level_Click">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Grid Width="72" Height="72">
+                                <Ellipse Fill="{StaticResource ModerateGradient}" />
+                                <ui:SymbolIcon Symbol="SearchInfo24" FontSize="32" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
+                            <TextBlock Text="Moderate Scan" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,4" />
+                            <TextBlock Style="{StaticResource Secondary}" TextAlignment="Center" TextWrapping="Wrap" Text="A deeper scan that adds broken program registrations" />
+                            <TextBlock x:Name="ModerateChecksText" Style="{StaticResource Tertiary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Tile}" Margin="6,0,6,0" Tag="Advanced" Click="Level_Click">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Grid Width="72" Height="72">
+                                <Ellipse Fill="{StaticResource AdvancedGradient}" />
+                                <ui:SymbolIcon Symbol="Key24" FontSize="32" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
+                            <TextBlock Text="Advanced Scan" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,4" />
+                            <TextBlock Style="{StaticResource Secondary}" TextAlignment="Center" TextWrapping="Wrap" Text="Exhaustive. Extra results are not selected for you" />
+                            <TextBlock x:Name="AdvancedChecksText" Style="{StaticResource Tertiary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Tile}" Margin="6,0,0,0" Click="Managed_Click">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Grid Width="72" Height="72">
+                                <Ellipse Fill="{StaticResource ManagedGradient}" />
+                                <ui:SymbolIcon Symbol="TaskListLtr24" FontSize="32" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
+                            <TextBlock Text="Managed Scan" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,4" />
+                            <TextBlock Style="{StaticResource Secondary}" TextAlignment="Center" TextWrapping="Wrap" Text="Choose exactly what to check" />
+                            <TextBlock Text="You pick" Style="{StaticResource Tertiary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
+
+                <ui:InfoBar Title="About registry cleaning" Severity="Informational" IsOpen="True" IsClosable="False" Margin="0,20,0,0"
+                            Message="Cleaning the registry rarely makes Windows faster; it mostly tidies up after removed software. DeepUninstall only removes entries with proof that they are dead, never touches Windows' own entries, and backs up everything so it can be restored from the Backups page." />
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ============ Managed: pick checks ============ -->
+        <DockPanel x:Name="ManagedPanel" Visibility="Collapsed">
+            <StackPanel DockPanel.Dock="Top" Margin="0,4,0,16">
+                <ui:Button Appearance="Transparent" Icon="{ui:SymbolIcon ArrowLeft24}" Content="Back" Padding="6,4" Margin="-6,0,0,8" Click="Back_Click" />
+                <TextBlock Text="Managed Scan" Style="{StaticResource PageTitle}" />
+                <TextBlock Text="Choose what to check. Advanced checks are off by default." Style="{StaticResource Secondary}" Margin="0,4,0,0" />
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Search24}" Content="Scan selected" MinWidth="140" Click="ScanSelected_Click" />
+            </StackPanel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="ChoicesList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Surface}" Padding="16,12" Margin="0,0,0,6">
+                                <DockPanel>
+                                    <Border DockPanel.Dock="Right" Style="{StaticResource Chip}" Margin="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding LevelText}" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    </Border>
+                                    <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center">
+                                        <StackPanel Margin="6,0,0,0">
+                                            <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                            <TextBlock Text="{Binding Description}" Style="{StaticResource Tertiary}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </CheckBox>
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+
+        <!-- ============ Working ============ -->
+        <StackPanel x:Name="WorkingPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+            <ui:ProgressRing IsIndeterminate="True" HorizontalAlignment="Center" />
+            <TextBlock x:Name="WorkingTitle" Style="{StaticResource SectionTitle}" HorizontalAlignment="Center" Margin="0,18,0,4" />
+            <TextBlock x:Name="WorkingStatus" Style="{StaticResource Secondary}" HorizontalAlignment="Center" />
+            <ui:Button x:Name="CancelButton" Content="Cancel" HorizontalAlignment="Center" Margin="0,18,0,0" Click="Cancel_Click" />
+        </StackPanel>
+
+        <!-- ============ Results ============ -->
+        <DockPanel x:Name="ResultsPanel" Visibility="Collapsed">
+            <DockPanel DockPanel.Dock="Top" Margin="0,4,0,12">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <ui:Button Appearance="Transparent" Content="Recommended" Click="SelectRecommended_Click" />
+                    <ui:Button Appearance="Transparent" Content="All" Click="SelectAll_Click" />
+                    <ui:Button Appearance="Transparent" Content="None" Click="SelectNone_Click" />
+                </StackPanel>
+                <StackPanel>
+                    <ui:Button Appearance="Transparent" Icon="{ui:SymbolIcon ArrowLeft24}" Content="Back" Padding="6,4" Margin="-6,0,0,8" Click="Back_Click" />
+                    <TextBlock x:Name="ResultsTitle" Style="{StaticResource PageTitle}" />
+                    <TextBlock Style="{StaticResource Secondary}" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Text="High-confidence entries are selected. Medium entries come from Advanced checks; review them before selecting." />
+                </StackPanel>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">
+                <TextBlock x:Name="SelectionText" Style="{StaticResource Secondary}" VerticalAlignment="Center" />
+                <ui:Button x:Name="CleanButton" Appearance="Danger" Icon="{ui:SymbolIcon Broom24}" HorizontalAlignment="Right" MinWidth="160" Click="Clean_Click" />
+            </DockPanel>
+            <Border Style="{StaticResource Surface}" Padding="2">
+                <DataGrid x:Name="ResultsGrid" IsReadOnly="True" SelectionMode="Extended" AutoGenerateColumns="False"
+                          HeadersVisibility="Column" GridLinesVisibility="None" CanUserAddRows="False" CanUserDeleteRows="False"
+                          CanUserResizeRows="False" RowHeight="40" Background="Transparent" BorderThickness="0"
+                          PreviewKeyDown="ResultsGrid_PreviewKeyDown">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="48" CanUserSort="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" MinWidth="0" Padding="0" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Check" Binding="{Binding CategoryName}" Width="180" SortMemberPath="CategoryOrder">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="Confidence" Width="100" SortMemberPath="Confidence">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="4" Padding="8,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Confidence}" Value="High">
+                                                        <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Confidence}" Value="Medium">
+                                                        <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBackgroundBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding ConfidenceText}" FontSize="12" />
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Entry" Binding="{Binding Location}" Width="2.2*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                    <Setter Property="ToolTip" Value="{Binding Location}" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Why" Binding="{Binding Reason}" Width="1.6*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                    <Setter Property="ToolTip" Value="{Binding Reason}" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </DockPanel>
+
+        <!-- ============ Done ============ -->
+        <Border x:Name="DonePanel" Style="{StaticResource Surface}" Padding="32,28" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="560">
+                <ui:SymbolIcon x:Name="DoneIcon" Symbol="CheckmarkCircle24" Filled="True" FontSize="56" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemFillColorSuccessBrush}" />
+                <TextBlock x:Name="DoneTitle" FontSize="22" FontWeight="SemiBold" Margin="0,16,0,8" HorizontalAlignment="Center"
+                           TextAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                <TextBlock x:Name="DoneText" Style="{StaticResource Secondary}" TextWrapping="Wrap" TextAlignment="Center" LineHeight="22" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,22,0,0">
+                    <ui:Button x:Name="SaveReportButton" Appearance="Primary" Content="Save report…" Icon="{ui:SymbolIcon DocumentArrowDown24}" Click="SaveReport_Click" />
+                    <ui:Button x:Name="OpenBackupsButton" Content="Open backup folder" Icon="{ui:SymbolIcon FolderOpen24}" Margin="8,0,0,0" Click="OpenBackups_Click" />
+                    <ui:Button Content="Done" Margin="8,0,0,0" Click="Back_Click" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

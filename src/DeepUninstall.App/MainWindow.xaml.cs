@@ -19,9 +19,10 @@ public partial class MainWindow : FluentWindow
     private void Nav_Checked(object sender, RoutedEventArgs e)
     {
         // Checked fires during InitializeComponent, before every page exists.
-        if (ProgramsPage is null || BackupsPage is null || AboutPage is null) return;
+        if (ProgramsPage is null || RegistryPage is null || BackupsPage is null || AboutPage is null) return;
 
         ProgramsPage.Visibility = ProgramsNav.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        RegistryPage.Visibility = RegistryNav.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         BackupsPage.Visibility = BackupsNav.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         AboutPage.Visibility = AboutNav.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
 
