@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest an idea.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like DeepUninstall to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why?
+      description: What problem would it solve for you?

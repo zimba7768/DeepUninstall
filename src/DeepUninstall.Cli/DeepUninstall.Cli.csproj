@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>deepuninstall</AssemblyName>
+    <RootNamespace>DeepUninstall.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DeepUninstall.Core\DeepUninstall.Core.csproj" />
+  </ItemGroup>
+
+</Project>

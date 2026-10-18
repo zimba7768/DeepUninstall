@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Test
+        run: dotnet test --configuration Release
+
+      - name: Publish
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          dotnet publish src/DeepUninstall.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:Version=$version -o out/app
+          dotnet publish src/DeepUninstall.Cli -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:Version=$version -o out/cli
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item out/app/DeepUninstall.exe dist/DeepUninstall-$version-win-x64.exe
+          Compress-Archive -Path out/cli/deepuninstall.exe, LICENSE, README.md -DestinationPath dist/deepuninstall-cli-$version-win-x64.zip
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          prerelease: ${{ startsWith(github.ref_name, 'v0.') }}

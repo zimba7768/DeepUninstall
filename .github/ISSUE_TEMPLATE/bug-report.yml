@@ -1,0 +1,26 @@
+name: Bug report
+description: Something crashed or didn't work.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: DeepUninstall version
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+  - type: textarea
+    id: log
+    attributes:
+      label: Details log
+      description: Paste the "Details" section of the uninstall window, if relevant.
+      render: text

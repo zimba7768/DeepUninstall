@@ -1,0 +1,36 @@
+name: Wrong leftover
+description: DeepUninstall flagged something that isn't the program's, or missed something that is.
+labels: [matching]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks! False positives are treated as high-priority bugs.
+  - type: input
+    id: program
+    attributes:
+      label: Program
+      description: Name, version and publisher (from `deepuninstall info "<name>"`).
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What went wrong?
+      options:
+        - Flagged something that belongs to another program or Windows (false positive)
+        - Missed a leftover (false negative)
+    validations:
+      required: true
+  - type: textarea
+    id: item
+    attributes:
+      label: The item
+      description: The path or registry key, its confidence level, and why it's wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: scan
+    attributes:
+      label: Scan output
+      description: Output of `deepuninstall scan "<name>"` (a dry run). Remove anything private.
+      render: text
