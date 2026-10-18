@@ -482,3 +482,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Our WPF project folder ends in .App; it is not a macOS app bundle (see *.app above).
+!src/DeepUninstall.App/
+
