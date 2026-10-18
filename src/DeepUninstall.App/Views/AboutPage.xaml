@@ -1,0 +1,63 @@
+<UserControl x:Class="DeepUninstall.App.Views.AboutPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Text="About" Style="{StaticResource PageTitle}" Margin="0,4,0,18" />
+
+            <Border Style="{StaticResource Surface}" Padding="24">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="pack://application:,,,/DeepUninstall;component/Assets/icon-256.png" Width="72" Height="72" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <StackPanel Margin="20,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="DeepUninstall" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock x:Name="VersionText" Style="{StaticResource Secondary}" Margin="0,2,0,0" />
+                        <TextBlock Text="Free and open source, released under the MIT License." Style="{StaticResource Tertiary}" Margin="0,6,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="How it keeps your PC safe" Style="{StaticResource SectionTitle}" Margin="0,24,0,10" />
+            <UniformGrid Columns="2">
+                <Border Style="{StaticResource Surface}" Padding="18" Margin="0,0,8,8">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="ShieldCheckmark24" FontSize="22" HorizontalAlignment="Left" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="Protected locations" FontWeight="SemiBold" Margin="0,10,0,4" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Style="{StaticResource Secondary}" TextWrapping="Wrap"
+                                   Text="Windows, user folders, other programs and essential file types are never touched, even if you select them." />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Surface}" Padding="18" Margin="8,0,0,8">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="ArrowUndo24" FontSize="22" HorizontalAlignment="Left" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="Everything can be undone" FontWeight="SemiBold" Margin="0,10,0,4" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Style="{StaticResource Secondary}" TextWrapping="Wrap"
+                                   Text="Optional restore point, files go to the Recycle Bin, and removed registry entries are backed up." />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Surface}" Padding="18" Margin="0,8,8,0">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="Eye24" FontSize="22" HorizontalAlignment="Left" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="You stay in control" FontWeight="SemiBold" Margin="0,10,0,4" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Style="{StaticResource Secondary}" TextWrapping="Wrap"
+                                   Text="Every leftover comes with a reason and a confidence level. Only strong matches are selected for you." />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Surface}" Padding="18" Margin="8,8,0,0">
+                    <StackPanel>
+                        <ui:SymbolIcon Symbol="LockClosed24" FontSize="22" HorizontalAlignment="Left" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock Text="Nothing in the background" FontWeight="SemiBold" Margin="0,10,0,4" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Style="{StaticResource Secondary}" TextWrapping="Wrap"
+                                   Text="No service, no tray icon, no startup entry, no telemetry. DeepUninstall only runs when you open it." />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <StackPanel Orientation="Horizontal" Margin="0,24,0,0">
+                <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Code24}" Content="Project on GitHub" Click="GitHub_Click" />
+                <ui:Button Icon="{ui:SymbolIcon Bug24}" Content="Report a problem" Margin="8,0,0,0" Click="Issues_Click" />
+                <ui:Button Icon="{ui:SymbolIcon FolderOpen24}" Content="Backups folder" Margin="8,0,0,0" Click="Backups_Click" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

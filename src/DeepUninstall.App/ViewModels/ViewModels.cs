@@ -1,8 +1,10 @@
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using DeepUninstall.Core.Models;
+using Wpf.Ui.Controls;
 
 namespace DeepUninstall.App.ViewModels;
 
@@ -22,7 +24,7 @@ public abstract class ObservableObject : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
-/// <summary>A row in the installed programs list.</summary>
+/// <summary>A program in the installed programs list.</summary>
 public sealed class AppItem(InstalledApp app) : ObservableObject
 {
     private ImageSource? _icon;
@@ -37,16 +39,22 @@ public sealed class AppItem(InstalledApp app) : ObservableObject
     public string InstallDateText => App.InstallDate?.ToString("d", CultureInfo.CurrentCulture) ?? "";
     public string Initial => string.IsNullOrEmpty(Name) ? "?" : Name[..1].ToUpperInvariant();
     public bool IsBroken => App.UninstallerMissing;
+    public string Location => App.InstallLocation ?? "";
+    public bool HasLocation => !string.IsNullOrWhiteSpace(App.InstallLocation);
 
-    public string Details
+    /// <summary>"Publisher · Version" line under the name.</summary>
+    public string Subtitle => string.Join("  ·  ", new[] { Publisher, Version }.Where(s => s.Length > 0));
+
+    /// <summary>Short facts shown as tags in the details panel.</summary>
+    public IReadOnlyList<string> Tags
     {
         get
         {
-            var parts = new List<string> { App.IsPerUser ? "Current user" : "All users" };
-            if (App.Is32Bit) parts.Add("32-bit");
-            if (App.InstallerType != InstallerType.Unknown) parts.Add(Format.Installer(App.InstallerType));
-            if (IsBroken) parts.Add("Uninstaller missing");
-            return string.Join(" · ", parts);
+            var tags = new List<string> { App.IsPerUser ? "Current user" : "All users" };
+            if (App.Is32Bit) tags.Add("32-bit");
+            var installer = Format.Installer(App.InstallerType);
+            if (installer.Length > 0) tags.Add(installer);
+            return tags;
         }
     }
 
@@ -85,38 +93,38 @@ public sealed class LeftoverItem(Leftover leftover) : ObservableObject
     public string ConfidenceText => Leftover.Confidence.ToString();
     public Confidence Confidence => Leftover.Confidence;
 
-    public string Group => Leftover.Kind switch
+    /// <summary>Sort key that keeps related items together.</summary>
+    public int GroupOrder => Leftover.Kind switch
     {
-        LeftoverKind.Directory or LeftoverKind.File => "Files and folders",
-        LeftoverKind.RegistryKey or LeftoverKind.RegistryValue => "Registry",
-        LeftoverKind.Service => "Services",
-        LeftoverKind.ScheduledTask => "Scheduled tasks",
-        LeftoverKind.FirewallRule => "Firewall rules",
-        _ => "Other",
+        LeftoverKind.Directory or LeftoverKind.File => 0,
+        LeftoverKind.RegistryKey or LeftoverKind.RegistryValue => 1,
+        _ => 2,
     };
 
     public string KindText => Leftover.Kind switch
     {
         LeftoverKind.Directory => "Folder",
-        LeftoverKind.File => Leftover.Path.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) ? "Shortcut" : "File",
-        LeftoverKind.RegistryKey => "Key",
-        LeftoverKind.RegistryValue => "Value",
+        LeftoverKind.File => IsShortcut ? "Shortcut" : "File",
+        LeftoverKind.RegistryKey => "Registry key",
+        LeftoverKind.RegistryValue => "Registry value",
         LeftoverKind.Service => "Service",
-        LeftoverKind.ScheduledTask => "Task",
-        LeftoverKind.FirewallRule => "Firewall",
+        LeftoverKind.ScheduledTask => "Scheduled task",
+        LeftoverKind.FirewallRule => "Firewall rule",
         _ => "",
     };
 
-    public string Glyph => Leftover.Kind switch
+    public SymbolRegular Symbol => Leftover.Kind switch
     {
-        LeftoverKind.Directory => "",
-        LeftoverKind.File => "",
-        LeftoverKind.RegistryKey or LeftoverKind.RegistryValue => "",
-        LeftoverKind.Service => "",
-        LeftoverKind.ScheduledTask => "",
-        LeftoverKind.FirewallRule => "",
-        _ => "",
+        LeftoverKind.Directory => SymbolRegular.Folder24,
+        LeftoverKind.File => IsShortcut ? SymbolRegular.Link24 : SymbolRegular.Document24,
+        LeftoverKind.RegistryKey or LeftoverKind.RegistryValue => SymbolRegular.Key24,
+        LeftoverKind.Service => SymbolRegular.Settings24,
+        LeftoverKind.ScheduledTask => SymbolRegular.CalendarClock24,
+        LeftoverKind.FirewallRule => SymbolRegular.Shield24,
+        _ => SymbolRegular.Document24,
     };
+
+    private bool IsShortcut => Leftover.Path.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase);
 }
 
 public enum StepState
@@ -142,9 +150,13 @@ public sealed class StepItem(string title) : ObservableObject
         get => _state;
         set
         {
-            if (Set(ref _state, value)) Raise(nameof(Glyph));
+            if (!Set(ref _state, value)) return;
+            Raise(nameof(Symbol));
+            Raise(nameof(IsRunning));
         }
     }
+
+    public bool IsRunning => State == StepState.Running;
 
     public string Detail
     {
@@ -152,15 +164,49 @@ public sealed class StepItem(string title) : ObservableObject
         set => Set(ref _detail, value);
     }
 
-    public string Glyph => State switch
+    public SymbolRegular Symbol => State switch
     {
-        StepState.Running => "",
-        StepState.Done => "",
-        StepState.Warning => "",
-        StepState.Failed => "",
-        StepState.Skipped => "",
-        _ => "",
+        StepState.Done => SymbolRegular.CheckmarkCircle24,
+        StepState.Warning => SymbolRegular.Warning24,
+        StepState.Failed => SymbolRegular.DismissCircle24,
+        StepState.Skipped => SymbolRegular.SubtractCircle24,
+        _ => SymbolRegular.Circle24,
     };
+}
+
+/// <summary>One cleanup's backup folder.</summary>
+public sealed class BackupItem
+{
+    public BackupItem(DirectoryInfo dir)
+    {
+        Directory = dir.FullName;
+        var name = dir.Name;
+        if (name.Length > 16 && DateTime.TryParseExact(name[..15], "yyyyMMdd-HHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+        {
+            Date = date;
+            Program = name[16..];
+        }
+        else
+        {
+            Date = dir.CreationTime;
+            Program = name;
+        }
+
+        RegistryFiles = dir.GetFiles("*.reg").Length;
+        var log = Path.Combine(dir.FullName, "removal-log.txt");
+        RemovedItems = File.Exists(log) ? File.ReadLines(log).Count(l => l.StartsWith("[Removed]", StringComparison.Ordinal)) : 0;
+    }
+
+    public string Directory { get; }
+    public string Program { get; }
+    public DateTime Date { get; }
+    public string DateText => Date.ToString("g", CultureInfo.CurrentCulture);
+    public int RegistryFiles { get; }
+    public int RemovedItems { get; }
+    public bool CanRestoreRegistry => RegistryFiles > 0;
+
+    public string Summary =>
+        $"{RemovedItems} item(s) removed  ·  {RegistryFiles} registry backup(s)";
 }
 
 internal static class Format

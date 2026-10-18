@@ -12,11 +12,12 @@ using DeepUninstall.Core.Models;
 using DeepUninstall.Core.Removal;
 using DeepUninstall.Core.Safety;
 using DeepUninstall.Core.Uninstall;
+using Wpf.Ui.Controls;
 
 namespace DeepUninstall.App;
 
 /// <summary>Walks one program through: restore point, uninstaller, leftover scan, cleanup.</summary>
-public partial class UninstallWindow : Window
+public partial class UninstallWindow : FluentWindow
 {
     private readonly UninstallSession _session;
     private readonly bool _force;
@@ -36,7 +37,10 @@ public partial class UninstallWindow : Window
         _session = new UninstallSession(app);
         _force = force || app.UninstallerMissing || !_session.CanRunUninstaller;
 
+        App.ApplyChrome(this);
         Title = $"Uninstall {app.DisplayName}";
+        TitleBar.Title = Title;
+        if (batch is null) BatchChip.Visibility = Visibility.Collapsed;
         AppName.Text = app.DisplayName;
         AppDetails.Text = string.Join("  ·  ", new[] { app.Publisher, app.DisplayVersion, app.InstallLocation }.Where(s => !string.IsNullOrWhiteSpace(s)));
         InitialText.Text = app.DisplayName.Length > 0 ? app.DisplayName[..1].ToUpperInvariant() : "?";
@@ -50,7 +54,7 @@ public partial class UninstallWindow : Window
         StepsList.ItemsSource = new[] { _restoreStep, _uninstallStep, _scanStep, _removeStep };
 
         var view = CollectionViewSource.GetDefaultView(_leftovers);
-        view.SortDescriptions.Add(new SortDescription(nameof(LeftoverItem.Group), ListSortDirection.Ascending));
+        view.SortDescriptions.Add(new SortDescription(nameof(LeftoverItem.GroupOrder), ListSortDirection.Ascending));
         view.SortDescriptions.Add(new SortDescription(nameof(LeftoverItem.Confidence), ListSortDirection.Descending));
         view.SortDescriptions.Add(new SortDescription(nameof(LeftoverItem.Location), ListSortDirection.Ascending));
         LeftoversGrid.ItemsSource = view;
@@ -77,12 +81,13 @@ public partial class UninstallWindow : Window
 
         if (_force)
         {
-            ForceWarning.Visibility = Visibility.Visible;
-            ForceWarningText.Text = app.UninstallerMissing
+            ForceWarning.Title = app.UninstallerMissing ? "Uninstaller missing" : "Force removal";
+            ForceWarning.Message = app.UninstallerMissing
                 ? "This program's uninstaller is missing, so it can't uninstall itself. DeepUninstall will skip it and remove what is left directly."
                 : "Force removal skips the program's own uninstaller and deletes what it finds directly. Use it only when the normal uninstall is broken.";
+            ForceWarning.IsOpen = true;
             StartButton.Content = "Force remove";
-            StartButton.Style = (Style)FindResource("DangerButton");
+            StartButton.Appearance = ControlAppearance.Danger;
             _uninstallStep.State = StepState.Skipped;
             _uninstallStep.Detail = "Skipped (force removal)";
         }
@@ -282,8 +287,8 @@ public partial class UninstallWindow : Window
         LeftoversPanel.Visibility = Visibility.Hidden;
         DonePanel.Visibility = Visibility.Visible;
         LogExpander.IsExpanded = false;
-        DoneGlyph.Text = success ? "îœ¾" : "îžº";
-        DoneGlyph.Foreground = (Brush)FindResource(success ? "SuccessBrush" : "WarningBrush");
+        DoneGlyph.Symbol = success ? SymbolRegular.CheckmarkCircle24 : SymbolRegular.Warning24;
+        DoneGlyph.SetResourceReference(ForegroundProperty, success ? "SystemFillColorSuccessBrush" : "SystemFillColorCautionBrush");
         DoneTitle.Text = title;
         DoneText.Text = text;
         FooterText.Text = "";

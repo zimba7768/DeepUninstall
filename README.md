@@ -16,6 +16,11 @@ programs.
 
 ## Features
 
+**A modern Windows 11 app**
+- Fluent design with Mica, and light/dark mode that follows your Windows setting.
+- Program list with icons, search, sorting and a details panel; Backups page to restore registry entries from any past cleanup.
+- Nothing runs in the background: no service, no tray icon, no startup entry, no telemetry.
+
 **Uninstalling**
 - Lists every installed program (per-machine 64-bit, per-machine 32-bit and per-user), with icons, sizes, dates and installer type.
 - Waits for the uninstaller to *really* finish. Uninstallers built with Inno Setup, NSIS and InstallShield copy themselves to `%TEMP%` and exit immediately. DeepUninstall runs them inside a Windows Job Object and tracks every child process, so the leftover scan never starts while the real uninstaller is still running.
@@ -127,8 +132,8 @@ Inside the engine:
 - Microsoft Store / MSIX apps and Windows features
 - PATH and environment variable cleanup
 - Browser extension and toolbar removal
-- Restore center to browse and re-apply backups from the app
-- Dark theme and localisation
+- Optional on-demand install tracking (snapshot before and after a setup; nothing resident)
+- Localisation
 - Signed releases and winget package
 
 Ideas and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).

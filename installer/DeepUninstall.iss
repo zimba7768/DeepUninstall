@@ -35,6 +35,7 @@ MinVersion=10.0
 PrivilegesRequired=admin
 ChangesEnvironment=yes
 UninstallDisplayIcon={app}\DeepUninstall.exe
+SetupIconFile=..\src\DeepUninstall.App\Assets\DeepUninstall.ico
 UninstallDisplayName={#AppName}
 VersionInfoVersion={#AppVersionNumeric}
 VersionInfoProductVersion={#AppVersionNumeric}

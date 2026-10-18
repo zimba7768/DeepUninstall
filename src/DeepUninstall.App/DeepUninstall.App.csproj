@@ -6,10 +6,22 @@
     <AssemblyName>DeepUninstall</AssemblyName>
     <RootNamespace>DeepUninstall.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\DeepUninstall.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DeepUninstall.Core\DeepUninstall.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Fluent (Windows 11) controls and theming: https://github.com/lepoco/wpfui -->
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\icon-32.png" />
+    <Resource Include="Assets\icon-256.png" />
+    <Resource Include="Assets\DeepUninstall.ico" />
   </ItemGroup>
 
 </Project>
