@@ -45,9 +45,21 @@ programs.
 
 ## Download
 
-Prebuilt releases will be published on the [Releases](../../releases) page. Until then, build from source (below).
+Get the latest version from the [Releases](../../releases) page:
 
-DeepUninstall needs administrator rights (uninstallers, services and machine-wide settings all require them), so Windows will ask for permission when it starts.
+| File | What it is |
+| --- | --- |
+| `DeepUninstall-Setup-<version>.exe` | **Installer (recommended).** Adds a Start Menu shortcut, an optional desktop icon, and optionally puts the `deepuninstall` CLI on your PATH. |
+| `DeepUninstall-<version>-portable-win-x64.exe` | Portable app. A single file, nothing to install. |
+| `deepuninstall-cli-<version>-win-x64.zip` | The command-line tool on its own. |
+
+No .NET installation is needed. DeepUninstall needs administrator rights (uninstallers, services and machine-wide settings all require them), so Windows will ask for permission when it starts.
+
+The builds are not code-signed yet, so Windows SmartScreen may show "Windows protected your PC". Click **More info → Run anyway**.
+
+## Testing
+
+See [TESTING.md](TESTING.md). It includes a harmless fake program with a deliberately sloppy uninstaller, and a script that installs it, removes it with DeepUninstall and checks that nothing was left behind.
 
 ## Command line
 
@@ -82,10 +94,11 @@ dotnet test
 
 Run the desktop app from `src\DeepUninstall.App\bin\Debug\net9.0-windows\DeepUninstall.exe`, or the CLI from `src\DeepUninstall.Cli\bin\Debug\net9.0-windows\deepuninstall.exe`.
 
-To produce a single self-contained executable:
+To build the release files (portable app, CLI and installer) into `artifacts\`:
 
 ```powershell
-dotnet publish src/DeepUninstall.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+winget install JRSoftware.InnoSetup   # once
+.\installer\build.ps1 -Version 0.2.0
 ```
 
 ## Project layout
@@ -96,6 +109,8 @@ dotnet publish src/DeepUninstall.App -c Release -r win-x64 --self-contained -p:P
 | `src/DeepUninstall.App` | WPF desktop app |
 | `src/DeepUninstall.Cli` | Command-line tool |
 | `tests/DeepUninstall.Core.Tests` | Unit tests (xUnit) |
+| `tests/Fixtures/LeftoverTestApp` | Fake program with a sloppy uninstaller, plus the end-to-end test script |
+| `installer` | Inno Setup installer script and the release build script |
 
 Inside the engine:
 

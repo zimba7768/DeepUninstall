@@ -20,15 +20,18 @@ jobs:
       - name: Test
         run: dotnet test --configuration Release
 
-      - name: Publish
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build app, CLI and installer
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".TrimStart('v')
-          dotnet publish src/DeepUninstall.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:Version=$version -o out/app
-          dotnet publish src/DeepUninstall.Cli -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:Version=$version -o out/cli
+          ./installer/build.ps1 -Version $version
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item out/app/DeepUninstall.exe dist/DeepUninstall-$version-win-x64.exe
-          Compress-Archive -Path out/cli/deepuninstall.exe, LICENSE, README.md -DestinationPath dist/deepuninstall-cli-$version-win-x64.zip
+          Copy-Item "artifacts/installer/DeepUninstall-Setup-$version.exe" dist/
+          Copy-Item artifacts/app/DeepUninstall.exe "dist/DeepUninstall-$version-portable-win-x64.exe"
+          Compress-Archive -Path artifacts/cli/deepuninstall.exe, LICENSE, README.md -DestinationPath "dist/deepuninstall-cli-$version-win-x64.zip"
 
       - uses: softprops/action-gh-release@v2
         with:

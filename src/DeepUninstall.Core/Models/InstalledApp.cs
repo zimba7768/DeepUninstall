@@ -32,5 +32,7 @@ public sealed record InstalledApp
     public string Id => UninstallKey.ToString();
 
     public override string ToString() =>
-        string.IsNullOrEmpty(DisplayVersion) ? DisplayName : $"{DisplayName} {DisplayVersion}";
+        string.IsNullOrEmpty(DisplayVersion) || DisplayName.Contains(DisplayVersion, StringComparison.OrdinalIgnoreCase)
+            ? DisplayName
+            : $"{DisplayName} {DisplayVersion}";
 }

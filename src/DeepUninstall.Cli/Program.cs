@@ -113,8 +113,10 @@ internal static class Program
         var app = Resolve(query);
         if (app is null) return 2;
 
-        if (!UninstallSession.IsElevated)
-            return Fail("Uninstalling needs administrator rights. Run this from an elevated terminal.");
+        // Programs installed just for the current user can be removed without admin rights.
+        var elevated = UninstallSession.IsElevated;
+        if (!elevated && !app.IsPerUser)
+            return Fail("This program is installed for all users, so uninstalling it needs administrator rights. Run this from an elevated terminal.");
 
         var log = new SyncProgress(m => Console.WriteLine($"  {m}"));
         var session = new UninstallSession(app);
@@ -127,7 +129,11 @@ internal static class Program
             cts.Cancel();
         };
 
-        if (!flags.Contains("--no-restore-point"))
+        if (!flags.Contains("--no-restore-point") && !elevated)
+        {
+            Console.WriteLine("Skipping the System Restore point: creating one needs administrator rights.");
+        }
+        else if (!flags.Contains("--no-restore-point"))
         {
             Console.WriteLine("Creating a System Restore point...");
             var rp = await RestorePoint.CreateAsync($"DeepUninstall: {app.DisplayName}");
